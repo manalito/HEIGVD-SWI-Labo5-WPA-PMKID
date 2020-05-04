@@ -1,20 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+#  Authors : Yimnaing Kamdem && Siu Aurelien
 
 """
 Derive WPA keys from Passphrase and 4-way handshake info
 
-Calcule un MIC d'authentification (le MIC pour la transmission de données
-utilise l'algorithme Michael. Dans ce cas-ci, l'authentification, on utilise
-sha-1 pour WPA2 ou MD5 pour WPA)
+Compute PMKID of authentication
+Crack passphrase using PMKID attack
 """
-
-__author__      = "Abraham Rubinstein et Yann Lederrey"
-__copyright__   = "Copyright 2017, HEIG-VD"
-__license__ 	= "GPL"
-__version__ 	= "1.0"
-__email__ 		= "abraham.rubinstein@heig-vd.ch"
-__status__ 		= "Prototype"
 
 from scapy.all import *
 from binascii import a2b_hex, b2a_hex, hexlify
